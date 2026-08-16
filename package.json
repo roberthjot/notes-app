@@ -17,8 +17,5 @@
     "marked": "^18.0.9",
     "pg": "^8.23.0",
     "sanitize-html": "^2.17.7"
-  },
-  "devDependencies": {
-    "@vercel/node": "^5.10.1"
   }
 }
