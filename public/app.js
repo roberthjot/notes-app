@@ -174,17 +174,19 @@
         ${excerpt ? `<p class="card-excerpt">${escapeHtml(excerpt)}</p>` : ''}
         <div class="card-meta">
           ${tags}
-          ${
-            n.source
-              ? `<a class="link" data-read="${escapeAttr(n.source)}" onclick="event.stopPropagation()">📖 leer</a>
-                 <a class="link" href="${escapeAttr(n.source)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 fuente</a>`
-              : ''
-          }
-          ${
-            st !== 'leido'
-              ? `<button class="mark-read" data-mark="${n.id}" title="Marcar como leído">✔ leído</button>`
-              : ''
-          }
+          <span class="card-actions">
+            ${
+              n.source
+                ? `<button class="act" data-read="${escapeAttr(n.source)}" title="Leer en la app">📖</button>
+                   <a class="act" href="${escapeAttr(n.source)}" target="_blank" rel="noopener" title="Fuente oficial">🔗</a>`
+                : ''
+            }
+            ${
+              st !== 'leido'
+                ? `<button class="act act-mark" data-mark="${n.id}" title="Marcar como leído">✔</button>`
+                : ''
+            }
+          </span>
         </div>
       </article>`;
   }
@@ -207,15 +209,6 @@
     } else {
       grid.innerHTML = list.map(cardHtml).join('');
     }
-    grid.querySelectorAll('.card').forEach((c) =>
-      c.addEventListener('click', () => openDetail(c.dataset.id))
-    );
-    grid.querySelectorAll('[data-mark]').forEach((b) =>
-      b.addEventListener('click', (e) => {
-        e.stopPropagation();
-        setStatus(b.dataset.mark, 'leido');
-      })
-    );
   }
 
   /* ---------- Editor ---------- */
@@ -468,6 +461,16 @@
     if (readEl) {
       e.preventDefault();
       openReader(readEl.dataset.read);
+      return;
+    }
+    const markEl = e.target.closest('[data-mark]');
+    if (markEl) {
+      setStatus(markEl.dataset.mark, 'leido');
+      return;
+    }
+    const card = e.target.closest('.card');
+    if (card && !e.target.closest('a') && !e.target.closest('[data-read]') && !e.target.closest('[data-mark]')) {
+      openDetail(card.dataset.id);
     }
   });
   $('#btn-edit').addEventListener('click', () => {
