@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notas</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="logo">📝</span>
+        <h1>Notas</h1>
+      </div>
+      <div class="topbar-actions">
+        <input id="search" class="search" type="search" placeholder="Buscar notas…" />
+        <button id="btn-new" class="btn btn-primary">+ Nueva nota</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="filters">
+      <div class="type-filters" id="type-filters"></div>
+      <div class="tag-filters" id="tag-filters"></div>
+    </section>
+
+    <section id="grid" class="grid"></section>
+    <div id="empty" class="empty hidden">
+      <p>No hay notas que coincidan.</p>
+      <button id="btn-empty-new" class="btn btn-primary">Crear la primera</button>
+    </div>
+  </main>
+
+  <!-- Modal editor -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="modal-title">Nueva nota</h2>
+        <button id="modal-close" class="btn btn-icon" aria-label="Cerrar">✕</button>
+      </div>
+      <form id="note-form" class="note-form">
+        <div class="row">
+          <div class="field grow">
+            <label for="f-title">Título</label>
+            <input id="f-title" required placeholder="Título de la nota" />
+          </div>
+          <div class="field">
+            <label for="f-type">Tipo</label>
+            <select id="f-type">
+              <option value="tweet">🐦 Tweet</option>
+              <option value="paper">📄 Paper</option>
+              <option value="article">📰 Artículo</option>
+              <option value="idea">💡 Idea</option>
+              <option value="quote">💬 Cita</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field grow">
+            <label for="f-source">URL de origen</label>
+            <input id="f-source" type="url" placeholder="https://… (opcional)" />
+          </div>
+          <div class="field auto-col">
+            <button id="btn-import" type="button" class="btn btn-ghost">🔗 Importar metadatos</button>
+          </div>
+        </div>
+        <div id="import-status" class="import-status"></div>
+
+        <div class="row">
+          <div class="field grow">
+            <label for="f-author">Autor</label>
+            <input id="f-author" placeholder="Autor o fuente" />
+          </div>
+          <div class="field">
+            <label for="f-date">Fecha</label>
+            <input id="f-date" type="date" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="f-tags">Tags</label>
+            <input id="f-tags" placeholder="separados por coma" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="f-content">Contenido (Markdown)</label>
+          <textarea id="f-content" rows="8" placeholder="Escribe o pega aquí…"></textarea>
+        </div>
+
+        <div class="modal-foot">
+          <span id="form-error" class="form-error"></span>
+          <div class="foot-actions">
+            <button type="button" id="btn-cancel" class="btn btn-ghost">Cancelar</button>
+            <button type="submit" id="btn-save" class="btn btn-primary">Guardar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal detalle -->
+  <div id="detail" class="modal hidden">
+    <div class="modal-card wide">
+      <div class="modal-head">
+        <span class="type-badge" id="detail-badge"></span>
+        <div class="head-actions">
+          <button id="btn-read" class="btn btn-ghost">📖 Leer</button>
+          <button id="btn-edit" class="btn btn-ghost">✏️ Editar</button>
+          <button id="btn-delete" class="btn btn-danger">🗑 Eliminar</button>
+          <button id="detail-close" class="btn btn-icon" aria-label="Cerrar">✕</button>
+        </div>
+      </div>
+      <div id="detail-body"></div>
+    </div>
+  </div>
+
+  <!-- Modal lector -->
+  <div id="reader" class="modal hidden">
+    <div class="modal-card wide">
+      <div class="modal-head">
+        <h2 id="reader-title" class="reader-title">Leyendo…</h2>
+        <div class="head-actions">
+          <a id="reader-original" class="btn btn-ghost" target="_blank" rel="noopener">🔍 Scholar</a>
+          <button id="reader-close" class="btn btn-icon" aria-label="Cerrar">✕</button>
+        </div>
+      </div>
+      <div id="reader-body" class="reader-body"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
