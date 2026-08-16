@@ -23,6 +23,7 @@
 
   <main class="container">
     <section class="filters">
+      <div class="status-filters" id="status-filters"></div>
       <div class="type-filters" id="type-filters"></div>
       <div class="tag-filters" id="tag-filters"></div>
     </section>
@@ -82,9 +83,17 @@
         </div>
 
         <div class="row">
-          <div class="field">
+          <div class="field grow">
             <label for="f-tags">Tags</label>
             <input id="f-tags" placeholder="separados por coma" />
+          </div>
+          <div class="field">
+            <label for="f-status">Estado</label>
+            <select id="f-status">
+              <option value="por-leer">📌 Por leer</option>
+              <option value="leyendo">⏳ Leyendo</option>
+              <option value="leido">✅ Leído</option>
+            </select>
           </div>
         </div>
 

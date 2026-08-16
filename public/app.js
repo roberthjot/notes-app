@@ -7,11 +7,14 @@
     quote: '💬 Cita',
   };
   const TYPE_ORDER = ['tweet', 'paper', 'article', 'idea', 'quote'];
+  const STATUS_LABELS = { 'por-leer': '📌 Por leer', leyendo: '⏳ Leyendo', leido: '✅ Leído' };
+  const STATUS_ORDER = ['leyendo', 'por-leer', 'leido'];
 
   const state = {
     notes: [],
     typeFilter: 'all',
     tagFilter: '',
+    statusFilter: 'all',
     search: '',
     editingId: null,
     detailId: null,
@@ -23,6 +26,7 @@
   const modal = $('#modal');
   const detail = $('#detail');
   const reader = $('#reader');
+  const statusFilters = $('#status-filters');
   const typeFilters = $('#type-filters');
   const tagFilters = $('#tag-filters');
 
@@ -68,6 +72,28 @@
   }
 
   /* ---------- Filtros ---------- */
+  function renderStatusFilters() {
+    const counts = { all: state.notes.length, 'por-leer': 0, leyendo: 0, leido: 0 };
+    for (const n of state.notes) counts[n.status || 'por-leer']++;
+    const tabs = [
+      { k: 'all', label: `Todo` },
+      ...STATUS_ORDER.map((s) => ({ k: s, label: STATUS_LABELS[s] })),
+    ];
+    statusFilters.innerHTML = tabs
+      .map(
+        ({ k, label }) =>
+          `<button class="chip ${state.statusFilter === k ? 'active' : ''}" data-status="${k}">${label} <span class="chip-count">${counts[k]}</span></button>`
+      )
+      .join('');
+    statusFilters.querySelectorAll('.chip').forEach((c) =>
+      c.addEventListener('click', () => {
+        state.statusFilter = c.dataset.status;
+        renderStatusFilters();
+        renderGrid();
+      })
+    );
+  }
+
   function renderTypeFilters() {
     const all = ['all', ...TYPE_ORDER];
     typeFilters.innerHTML = all
@@ -116,6 +142,7 @@
     const q = state.search.toLowerCase();
     return state.notes.filter((n) => {
       if (state.typeFilter !== 'all' && n.type !== state.typeFilter) return false;
+      if (state.statusFilter !== 'all' && (n.status || 'por-leer') !== state.statusFilter) return false;
       if (state.tagFilter && !n.tags.includes(state.tagFilter)) return false;
       if (q) {
         const hay = `${n.title} ${n.content} ${n.author} ${n.tags.join(' ')}`.toLowerCase();
@@ -125,38 +152,68 @@
     });
   }
 
+  function statusOf(n) {
+    return n.status || 'por-leer';
+  }
+
+  function cardHtml(n) {
+    const excerpt = stripMarkdown(n.content).slice(0, 180);
+    const tags = n.tags
+      .slice(0, 3)
+      .map((t) => `<span class="tag">#${escapeHtml(t)}</span>`)
+      .join('');
+    const st = statusOf(n);
+    return `
+      <article class="card" data-id="${n.id}">
+        <div class="card-top">
+          <span class="type-badge type-${n.type}">${TYPE_LABELS[n.type]}</span>
+          <span class="status-chip status-${st}">${STATUS_LABELS[st]}</span>
+        </div>
+        <h3 class="card-title">${escapeHtml(n.title)}</h3>
+        ${excerpt ? `<p class="card-excerpt">${escapeHtml(excerpt)}</p>` : ''}
+        <div class="card-meta">
+          ${tags}
+          ${
+            n.source
+              ? `<a class="link" data-read="${escapeAttr(n.source)}" onclick="event.stopPropagation()">📖 leer</a>
+                 <a class="link" href="${escapeAttr(n.source)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 fuente</a>`
+              : ''
+          }
+          ${
+            st !== 'leido'
+              ? `<button class="mark-read" data-mark="${n.id}" title="Marcar como leído">✔ leído</button>`
+              : ''
+          }
+        </div>
+      </article>`;
+  }
+
   function renderGrid() {
     const list = filtered();
     empty.classList.toggle('hidden', list.length > 0);
-    grid.innerHTML = list
-      .map((n) => {
-        const excerpt = stripMarkdown(n.content).slice(0, 180);
-        const tags = n.tags
-          .slice(0, 3)
-          .map((t) => `<span class="tag">#${escapeHtml(t)}</span>`)
-          .join('');
-        return `
-          <article class="card" data-id="${n.id}">
-            <div class="card-top">
-              <span class="type-badge type-${n.type}">${TYPE_LABELS[n.type]}</span>
-              <span class="card-date">${escapeHtml(n.date)}</span>
-            </div>
-            <h3 class="card-title">${escapeHtml(n.title)}</h3>
-            ${excerpt ? `<p class="card-excerpt">${escapeHtml(excerpt)}</p>` : ''}
-            <div class="card-meta">
-              ${tags}
-              ${
-                n.source
-                  ? `<a class="link" data-read="${escapeAttr(n.source)}" onclick="event.stopPropagation()">📖 leer</a>
-                     <a class="link" href="${escapeAttr(n.source)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 fuente</a>`
-                  : ''
-              }
-            </div>
-          </article>`;
-      })
-      .join('');
+    if (state.statusFilter === 'all') {
+      let html = '';
+      for (const s of STATUS_ORDER) {
+        const items = list.filter((n) => statusOf(n) === s);
+        if (!items.length) continue;
+        html += `
+          <section class="group">
+            <h2 class="group-title">${STATUS_LABELS[s]} <span class="group-count">${items.length}</span></h2>
+            <div class="grid">${items.map(cardHtml).join('')}</div>
+          </section>`;
+      }
+      grid.innerHTML = html;
+    } else {
+      grid.innerHTML = list.map(cardHtml).join('');
+    }
     grid.querySelectorAll('.card').forEach((c) =>
       c.addEventListener('click', () => openDetail(c.dataset.id))
+    );
+    grid.querySelectorAll('[data-mark]').forEach((b) =>
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setStatus(b.dataset.mark, 'leido');
+      })
     );
   }
 
@@ -174,6 +231,7 @@
     $('#f-author').value = note ? note.author : '';
     $('#f-date').value = note ? note.date : today();
     $('#f-tags').value = note ? note.tags.join(', ') : '';
+    $('#f-status').value = note ? note.status || 'por-leer' : 'por-leer';
     $('#f-content').value = note ? note.content : '';
     $('#form-error').textContent = '';
     const status = $('#import-status');
@@ -228,6 +286,7 @@
       author: $('#f-author').value.trim(),
       date: $('#f-date').value || today(),
       tags: $('#f-tags').value.split(',').map((t) => t.trim()).filter(Boolean),
+      status: $('#f-status').value,
       content: $('#f-content').value,
     };
   }
@@ -280,16 +339,27 @@
       $('#detail-badge').textContent = TYPE_LABELS[note.type];
       $('#detail-badge').className = `type-badge type-${note.type}`;
       $('#btn-read').style.display = note.source ? '' : 'none';
+      const statusSet = `
+        <div class="status-set">
+          ${STATUS_ORDER.map(
+            (s) =>
+              `<button class="chip status-opt ${statusOf(note) === s ? 'active' : ''}" data-set-status="${s}">${STATUS_LABELS[s]}</button>`
+          ).join('')}
+        </div>`;
       $('#detail-body').innerHTML = `
         <h2 class="detail-title">${escapeHtml(note.title)}</h2>
         <div class="detail-sub">
           ${note.date}
           ${note.author ? ` · ${escapeHtml(note.author)}` : ''}
         </div>
+        ${statusSet}
         ${links}
         <div class="detail-tags">${tags}</div>
         <div class="md-body">${rendered.html}</div>`;
       detail.classList.remove('hidden');
+      $('#detail-body').querySelectorAll('[data-set-status]').forEach((b) =>
+        b.addEventListener('click', () => setStatus(state.detailId, b.dataset.setStatus))
+      );
     } catch (err) {
       toast(err.message);
     }
@@ -307,6 +377,17 @@
       toast('Nota eliminada');
       closeDetail();
       await refresh();
+    } catch (err) {
+      toast(err.message);
+    }
+  }
+
+  async function setStatus(id, status) {
+    try {
+      await api(`/api/notes/${id}`, { method: 'PUT', body: JSON.stringify({ status }) });
+      toast(`Marcada: ${STATUS_LABELS[status]}`);
+      await refresh();
+      if (state.detailId === id) openDetail(id);
     } catch (err) {
       toast(err.message);
     }
@@ -358,6 +439,7 @@
   /* ---------- Carga ---------- */
   async function refresh() {
     state.notes = await api('/api/notes');
+    renderStatusFilters();
     renderTypeFilters();
     renderTagFilters();
     renderGrid();
