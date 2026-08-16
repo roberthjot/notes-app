@@ -8,6 +8,7 @@
   };
   const TYPE_ORDER = ['tweet', 'paper', 'article', 'idea', 'quote'];
   const STATUS_LABELS = { 'por-leer': '📌 Por leer', leyendo: '⏳ Leyendo', leido: '✅ Leído' };
+  const STATUS_SHORT = { 'por-leer': 'Por leer', leyendo: 'Leyendo', leido: 'Leído' };
   const STATUS_ORDER = ['leyendo', 'por-leer', 'leido'];
 
   const state = {
@@ -167,7 +168,7 @@
       <article class="card" data-id="${n.id}">
         <div class="card-top">
           <span class="type-badge type-${n.type}">${TYPE_LABELS[n.type]}</span>
-          <span class="status-chip status-${st}">${STATUS_LABELS[st]}</span>
+          <span class="status-chip status-${st}">${STATUS_SHORT[st]}</span>
         </div>
         <h3 class="card-title">${escapeHtml(n.title)}</h3>
         ${excerpt ? `<p class="card-excerpt">${escapeHtml(excerpt)}</p>` : ''}
@@ -198,7 +199,7 @@
         if (!items.length) continue;
         html += `
           <section class="group">
-            <h2 class="group-title">${STATUS_LABELS[s]} <span class="group-count">${items.length}</span></h2>
+            <h2 class="group-title">${STATUS_SHORT[s]} <span class="group-count">${items.length}</span></h2>
             <div class="grid">${items.map(cardHtml).join('')}</div>
           </section>`;
       }
@@ -343,7 +344,7 @@
         <div class="status-set">
           ${STATUS_ORDER.map(
             (s) =>
-              `<button class="chip status-opt ${statusOf(note) === s ? 'active' : ''}" data-set-status="${s}">${STATUS_LABELS[s]}</button>`
+              `<button class="chip status-opt ${statusOf(note) === s ? 'active' : ''}" data-set-status="${s}">${STATUS_SHORT[s]}</button>`
           ).join('')}
         </div>`;
       $('#detail-body').innerHTML = `
