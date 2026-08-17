@@ -4,10 +4,11 @@ const { marked } = require('marked');
 const sanitizeHtml = require('sanitize-html');
 const notes = require('./lib/notes');
 const { fetchMeta, readPage } = require('./lib/fetch-meta');
+const { uploadImage } = require('./lib/upload');
 
 const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: '12mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const wrap = (fn) => async (req, res) => {
@@ -49,6 +50,12 @@ app.get('/api/fetch-meta', wrap(async (req, res) => {
 app.get('/api/read', wrap(async (req, res) => {
   if (!req.query.url) throw new Error('Falta el parámetro url');
   res.json(await readPage(String(req.query.url)));
+}));
+
+app.post('/api/upload', wrap(async (req, res) => {
+  const { name, data, mime } = req.body || {};
+  if (!data) throw new Error('Falta la imagen');
+  res.json(await uploadImage({ name, data, mime }));
 }));
 
 app.post('/api/render', (req, res) => {

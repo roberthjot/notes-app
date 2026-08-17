@@ -3,7 +3,10 @@ npm-debug.log*
 
 # datos locales (no se suben)
 notes/
+public/uploads/
 .env
 .vercel/
 .vercel
+.env*
+
 .env*

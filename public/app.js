@@ -273,6 +273,55 @@
     }
   }
 
+  async function handleImageUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      toast('Imagen muy grande (máx 4 MB)');
+      e.target.value = '';
+      return;
+    }
+    const btn = $('#btn-image');
+    btn.disabled = true;
+    try {
+      const url = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const dataUrl = reader.result;
+            const mime = dataUrl.match(/^data:([^;]+);/)?.[1] || 'image/png';
+            const res = await api('/api/upload', {
+              method: 'POST',
+              body: JSON.stringify({ name: file.name, data: dataUrl.split(',')[1], mime }),
+            });
+            resolve(res.url);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        reader.onerror = () => reject(new Error('No se pudo leer la imagen'));
+        reader.readAsDataURL(file);
+      });
+      const alt = file.name.replace(/\.[^.]+$/, '');
+      insertMarkdown(`\n![${alt}](${url})\n`);
+      toast('Imagen adjuntada');
+    } catch (err) {
+      toast(err.message);
+    } finally {
+      btn.disabled = false;
+      e.target.value = '';
+    }
+  }
+
+  function insertMarkdown(text) {
+    const ta = $('#f-content');
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = start + text.length;
+  }
+
   function collectForm() {
     return {
       title: $('#f-title').value.trim(),
@@ -469,6 +518,8 @@
   $('#btn-cancel').addEventListener('click', closeEditor);
   $('#note-form').addEventListener('submit', saveNote);
   $('#btn-import').addEventListener('click', handleImport);
+  $('#btn-image').addEventListener('click', () => $('#f-image').click());
+  $('#f-image').addEventListener('change', handleImageUpload);
   $('#detail-close').addEventListener('click', closeDetail);
   $('#btn-read').addEventListener('click', () => {
     const note = state.notes.find((n) => n.id === state.detailId);

@@ -98,9 +98,13 @@
         </div>
 
         <div class="field">
-          <label for="f-content">Contenido (Markdown)</label>
+          <div class="field-head">
+            <label for="f-content">Contenido (Markdown)</label>
+            <button id="btn-image" type="button" class="btn btn-ghost btn-sm">🖼 Imagen</button>
+          </div>
           <textarea id="f-content" rows="8" placeholder="Escribe o pega aquí…"></textarea>
         </div>
+        <input id="f-image" type="file" accept="image/*" hidden />
 
         <div class="modal-foot">
           <span id="form-error" class="form-error"></span>

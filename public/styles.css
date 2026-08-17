@@ -279,6 +279,8 @@ input, select, textarea { font-family: inherit; }
 .auto-col { align-self: flex-end; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 12px; color: var(--text-dim); font-weight: 500; }
+.field-head { display: flex; align-items: center; justify-content: space-between; }
+.btn-sm { padding: 4px 10px; font-size: 12.5px; border-radius: 8px; }
 .field input, .field select, .field textarea {
   background: var(--bg-input);
   border: 1px solid var(--border);
