@@ -117,10 +117,25 @@ const EMBED_PROVIDERS = [
 app.get('/api/oembed', wrap(async (req, res) => {
   const url = String(req.query.url || '');
   if (!/^https?:\/\//i.test(url)) throw new Error('URL inválida');
-  for (const p of EMBED_PROVIDERS) {
-    if (!p.match.test(url)) continue;
+  let target = url;
+  if (/vm\.tiktok\.com|t\.co\/|lnk\.bio\//i.test(url)) {
     try {
-      const r = await fetch(p.oembed(url), {
+      const r = await fetch(url, {
+        redirect: 'follow',
+        headers: {
+          'user-agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+        },
+      });
+      if (r.url && /^https?:\/\//i.test(r.url)) target = r.url;
+    } catch {
+      /* quedarse con la URL original */
+    }
+  }
+  for (const p of EMBED_PROVIDERS) {
+    if (!p.match.test(target)) continue;
+    try {
+      const r = await fetch(p.oembed(target), {
         headers: {
           'user-agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
