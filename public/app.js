@@ -27,6 +27,7 @@
   const modal = $('#modal');
   const detail = $('#detail');
   const reader = $('#reader');
+  const confirmEl = $('#confirm');
   const statusFilters = $('#status-filters');
   const typeFilters = $('#type-filters');
   const tagFilters = $('#tag-filters');
@@ -364,8 +365,26 @@
     state.detailId = null;
   }
 
+  /* ---------- Confirmación ---------- */
+  let confirmResolve = null;
+  function askConfirm(text) {
+    return new Promise((resolve) => {
+      confirmResolve = resolve;
+      $('#confirm-text').textContent = text;
+      confirmEl.classList.remove('hidden');
+    });
+  }
+  function resolveConfirm(val) {
+    if (confirmResolve) {
+      confirmResolve(val);
+      confirmResolve = null;
+    }
+    confirmEl.classList.add('hidden');
+  }
+
   async function deleteNote(id) {
-    if (!confirm('¿Eliminar esta nota?')) return;
+    const note = state.notes.find((n) => n.id === id);
+    if (!(await askConfirm(`¿Eliminar "${note ? note.title : 'esta nota'}"?`))) return;
     try {
       await api(`/api/notes/${id}`, { method: 'DELETE' });
       toast('Nota eliminada');
@@ -480,16 +499,23 @@
   $('#btn-delete').addEventListener('click', () => {
     if (state.detailId) deleteNote(state.detailId);
   });
+  $('#confirm-ok').addEventListener('click', () => resolveConfirm(true));
+  $('#confirm-cancel').addEventListener('click', () => resolveConfirm(false));
+  $('#confirm-close').addEventListener('click', () => resolveConfirm(false));
   $('#search').addEventListener('input', (e) => {
     state.search = e.target.value;
     renderGrid();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      if (!confirmEl.classList.contains('hidden')) return resolveConfirm(false);
       if (!reader.classList.contains('hidden')) return closeReader();
       if (!modal.classList.contains('hidden')) closeEditor();
       if (!detail.classList.contains('hidden')) closeDetail();
     }
+  });
+  confirmEl.addEventListener('click', (e) => {
+    if (e.target === confirmEl) resolveConfirm(false);
   });
   modal.addEventListener('click', (e) => {
     if (e.target === modal) closeEditor();

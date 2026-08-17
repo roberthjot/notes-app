@@ -143,6 +143,23 @@
     </div>
   </div>
 
+  <!-- Modal confirmación -->
+  <div id="confirm" class="modal hidden">
+    <div class="modal-card confirm-card">
+      <div class="modal-head">
+        <h2>Eliminar nota</h2>
+        <button id="confirm-close" class="btn btn-icon" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="confirm-body">
+        <p id="confirm-text" class="confirm-text"></p>
+        <div class="confirm-actions">
+          <button id="confirm-cancel" class="btn btn-ghost">Cancelar</button>
+          <button id="confirm-ok" class="btn btn-danger">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden"></div>
 
   <script src="app.js"></script>

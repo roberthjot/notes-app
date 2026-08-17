@@ -322,6 +322,12 @@ input, select, textarea { font-family: inherit; }
 .md-body a { color: var(--accent); }
 .md-body img { max-width: 100%; border-radius: 8px; }
 
+/* ---------- Confirmación ---------- */
+.confirm-card { max-width: 380px; }
+.confirm-body { padding: 22px; display: flex; flex-direction: column; gap: 20px; }
+.confirm-text { font-size: 14.5px; line-height: 1.5; color: var(--text); }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
 /* ---------- Lector ---------- */
 .reader-title { font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 480px; }
 .reader-body { padding: 22px; max-height: 70vh; overflow-y: auto; }
