@@ -110,9 +110,28 @@ app.get('/api/read', wrap(async (req, res) => {
 const EMBED_PROVIDERS = [
   { name: 'youtube', match: /(?:youtube\.com\/watch|youtu\.be\/)/, oembed: (u) => `https://www.youtube.com/oembed?url=${encodeURIComponent(u)}&format=json` },
   { name: 'tiktok', match: /tiktok\.com\//, oembed: (u) => `https://www.tiktok.com/oembed?url=${encodeURIComponent(u)}` },
-  { name: 'instagram', match: /instagram\.com\/(p|reel|tv)\//, oembed: (u) => `https://api.instagram.com/oembed?url=${encodeURIComponent(u)}` },
   { name: 'twitter', match: /(?:twitter\.com\/|x\.com\/).*\/status\//, oembed: (u) => `https://publish.twitter.com/oembed?url=${encodeURIComponent(u)}` },
 ];
+
+function escapeAttr(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function buildInstagramEmbed(url) {
+  return `<blockquote class="instagram-media" data-instgrm-permalink="${escapeAttr(url)}" data-instgrm-version="14" style="background:#FFF;border:0;border-radius:3px;box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15);margin:1px;max-width:540px;min-width:326px;padding:0;width:99.375%;width:-webkit-calc(100% - 2px);width:calc(100% - 2px);display:block;">
+  <div style="padding:16px;">
+    <a href="${escapeAttr(url)}" target="_blank" rel="noopener" style="background:#FFFFFF;line-height:0;padding:0 0;text-align:center;text-decoration:none;width:100%;display:block;">
+      <span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:7px 0;font-size:14px;font-weight:600;">Ver publicación de Instagram</span>
+    </a>
+  </div>
+</blockquote>
+<script async src="//platform.instagram.com/en_US/embeds.js"></script>`;
+}
 
 app.get('/api/oembed', wrap(async (req, res) => {
   const url = String(req.query.url || '');
@@ -131,6 +150,9 @@ app.get('/api/oembed', wrap(async (req, res) => {
     } catch {
       /* quedarse con la URL original */
     }
+  }
+  if (/instagram\.com\/(p|reel|tv|stories)\//i.test(target)) {
+    return res.json({ provider: 'instagram', html: buildInstagramEmbed(target), title: '', author: '' });
   }
   for (const p of EMBED_PROVIDERS) {
     if (!p.match.test(target)) continue;
