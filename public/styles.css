@@ -327,7 +327,30 @@ input, select, textarea { font-family: inherit; }
 /* ---------- Embeds ---------- */
 .note-embed { margin: 4px 0 18px; }
 .note-embed iframe { max-width: 100%; border-radius: 10px; border: 1px solid var(--border); }
-.note-embed .twitter-tweet, .note-embed .instagram-media { margin: 0 auto !important; }
+.note-embed .twitter-tweet { margin: 0 auto !important; }
+
+.ig-card {
+  max-width: 540px;
+  margin: 0 auto;
+}
+.ig-card a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text);
+  background: var(--bg-soft);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.ig-card a:hover { border-color: var(--accent); transform: translateY(-1px); }
+.ig-ico { font-size: 26px; line-height: 1; }
+.ig-txt { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.ig-txt b { font-size: 14px; }
+.ig-url { font-size: 12.5px; color: var(--text-dim); }
+.ig-go { font-size: 13px; color: var(--accent); white-space: nowrap; }
 
 /* ---------- Confirmación ---------- */
 .confirm-card { max-width: 380px; }

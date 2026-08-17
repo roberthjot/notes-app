@@ -123,14 +123,13 @@ function escapeAttr(str) {
 }
 
 function buildInstagramEmbed(url) {
-  return `<blockquote class="instagram-media" data-instgrm-permalink="${escapeAttr(url)}" data-instgrm-version="14" style="background:#FFF;border:0;border-radius:3px;box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15);margin:1px;max-width:540px;min-width:326px;padding:0;width:99.375%;width:-webkit-calc(100% - 2px);width:calc(100% - 2px);display:block;">
-  <div style="padding:16px;">
-    <a href="${escapeAttr(url)}" target="_blank" rel="noopener" style="background:#FFFFFF;line-height:0;padding:0 0;text-align:center;text-decoration:none;width:100%;display:block;">
-      <span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:7px 0;font-size:14px;font-weight:600;">Ver publicación de Instagram</span>
-    </a>
-  </div>
-</blockquote>
-<script async src="//platform.instagram.com/en_US/embeds.js"></script>`;
+  return `<div class="ig-card">
+  <a href="${escapeAttr(url)}" target="_blank" rel="noopener">
+    <span class="ig-ico" aria-hidden="true">📸</span>
+    <span class="ig-txt"><b>Instagram</b><span class="ig-url">Instagram ya no permite incrustar publicaciones en sitios de terceros.</span></span>
+    <span class="ig-go">Abrir ↗</span>
+  </a>
+</div>`;
 }
 
 app.get('/api/oembed', wrap(async (req, res) => {
