@@ -31,6 +31,7 @@
   const statusFilters = $('#status-filters');
   const typeFilters = $('#type-filters');
   const tagFilters = $('#tag-filters');
+  const loginEl = $('#login');
 
   function escapeHtml(str) {
     return String(str ?? '')
@@ -55,13 +56,16 @@
       .replace(/\s+/g, ' ')
       .trim();
 
-  async function api(path, opts = {}) {
+async function api(path, opts = {}) {
     const res = await fetch(path, {
       headers: { 'Content-Type': 'application/json' },
       ...opts,
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || 'Error del servidor');
+    if (!res.ok) {
+      if (res.status === 401) showLogin();
+      throw new Error(data.error || 'Error');
+    }
     return data;
   }
 
@@ -498,6 +502,34 @@
     reader.classList.add('hidden');
   }
 
+  /* ---------- Login ---------- */
+  function showLogin() {
+    loginEl.classList.remove('hidden');
+  }
+
+  async function authRequest(path) {
+    const err = $('#login-err');
+    err.textContent = '';
+    const username = $('#l-username').value.trim();
+    const password = $('#l-password').value;
+    if (!username || !password) {
+      err.textContent = 'Completa usuario y contraseña';
+      return;
+    }
+    const btn = path === '/api/login' ? $('#btn-login') : $('#btn-register');
+    btn.disabled = true;
+    try {
+      await api(path, { method: 'POST', body: JSON.stringify({ username, password }) });
+      $('#l-password').value = '';
+      loginEl.classList.add('hidden');
+      await refresh();
+    } catch (e) {
+      err.textContent = e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
   /* ---------- Carga ---------- */
   async function refresh() {
     state.notes = await api('/api/notes');
@@ -508,10 +540,36 @@
   }
 
   async function init() {
+    try {
+      const auth = await api('/api/auth');
+      if (!auth.authed) {
+        showLogin();
+        return;
+      }
+    } catch {
+      showLogin();
+      return;
+    }
     await refresh();
   }
 
   /* ---------- Eventos ---------- */
+  $('#btn-logout').addEventListener('click', async () => {
+    try {
+      await api('/api/logout', { method: 'POST' });
+    } catch {}
+    grid.innerHTML = '';
+    state.notes = [];
+    renderStatusFilters();
+    renderTypeFilters();
+    renderTagFilters();
+    showLogin();
+  });
+  $('#login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    authRequest('/api/login');
+  });
+  $('#btn-register').addEventListener('click', () => authRequest('/api/register'));
   $('#btn-new').addEventListener('click', () => openEditor());
   $('#btn-empty-new').addEventListener('click', () => openEditor());
   $('#modal-close').addEventListener('click', closeEditor);

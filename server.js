@@ -5,11 +5,34 @@ const sanitizeHtml = require('sanitize-html');
 const notes = require('./lib/notes');
 const { fetchMeta, readPage } = require('./lib/fetch-meta');
 const { uploadImage } = require('./lib/upload');
+const users = require('./lib/users');
 
 const app = express();
 
 app.use(express.json({ limit: '12mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+const COOKIE = 'ns_session';
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
+
+function readSession(req) {
+  const raw = req.headers.cookie;
+  if (!raw) return null;
+  const m = String(raw).match(/(?:^|;\s*)ns_session=([^;]+)/);
+  return m ? users.verifySession(decodeURIComponent(m[1])) : null;
+}
+
+function setSession(req, res, token) {
+  const secure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+  res.setHeader(
+    'Set-Cookie',
+    `${COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}${secure ? '; Secure' : ''}`
+  );
+}
+
+function clearSession(res) {
+  res.setHeader('Set-Cookie', `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
+}
 
 const wrap = (fn) => async (req, res) => {
   try {
@@ -18,6 +41,38 @@ const wrap = (fn) => async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
+const PUBLIC_API = new Set(['/login', '/register', '/logout', '/auth']);
+
+app.use('/api', (req, res, next) => {
+  if (PUBLIC_API.has(req.path)) return next();
+  if (!readSession(req)) return res.status(401).json({ error: 'No autorizado' });
+  next();
+});
+
+app.get('/api/auth', (req, res) => {
+  const s = readSession(req);
+  res.json({ authed: Boolean(s), username: s ? s.u : null });
+});
+
+app.post('/api/register', wrap(async (req, res) => {
+  const { username, password } = req.body || {};
+  const user = await users.register(username, password);
+  setSession(req, res, users.signSession(user.username));
+  res.status(201).json({ ok: true, username: user.username });
+}));
+
+app.post('/api/login', wrap(async (req, res) => {
+  const { username, password } = req.body || {};
+  const user = await users.login(username, password);
+  setSession(req, res, users.signSession(user.username));
+  res.json({ ok: true, username: user.username });
+}));
+
+app.post('/api/logout', (req, res) => {
+  clearSession(res);
+  res.json({ ok: true });
+});
 
 app.get('/api/notes', wrap(async (req, res) => {
   res.json(await notes.getNotes());

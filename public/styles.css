@@ -330,6 +330,34 @@ input, select, textarea { font-family: inherit; }
 .confirm-text { font-size: 14.5px; line-height: 1.5; color: var(--text); }
 .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
+/* ---------- Login ---------- */
+.login {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.login-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 34px 30px;
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--shadow);
+}
+.login-brand { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.login-brand h1 { font-size: 22px; font-weight: 650; }
+.login-sub { text-align: center; color: var(--text-dim); font-size: 13.5px; margin-top: -8px; }
+.login-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+
 /* ---------- Lector ---------- */
 .reader-title { font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 480px; }
 .reader-body { padding: 22px; max-height: 70vh; overflow-y: auto; }

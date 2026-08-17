@@ -17,6 +17,7 @@
       <div class="topbar-actions">
         <input id="search" class="search" type="search" placeholder="Buscar notas…" />
         <button id="btn-new" class="btn btn-primary">+ Nueva nota</button>
+        <button id="btn-logout" class="btn btn-icon" title="Cerrar sesión">🔒</button>
       </div>
     </div>
   </header>
@@ -34,6 +35,30 @@
       <button id="btn-empty-new" class="btn btn-primary">Crear la primera</button>
     </div>
   </main>
+
+  <!-- Login -->
+  <div id="login" class="login hidden">
+    <form id="login-form" class="login-card">
+      <div class="login-brand">
+        <span class="logo">📝</span>
+        <h1>Notas</h1>
+      </div>
+      <p class="login-sub">Inicia sesión para ver tus notas</p>
+      <div id="login-err" class="form-error"></div>
+      <div class="field">
+        <label for="l-username">Usuario</label>
+        <input id="l-username" autocomplete="username" placeholder="tu usuario" />
+      </div>
+      <div class="field">
+        <label for="l-password">Contraseña</label>
+        <input id="l-password" type="password" autocomplete="current-password" placeholder="••••••••" />
+      </div>
+      <div class="login-actions">
+        <button id="btn-login" type="submit" class="btn btn-primary">Iniciar sesión</button>
+        <button id="btn-register" type="button" class="btn btn-ghost">Registrarme</button>
+      </div>
+    </form>
+  </div>
 
   <!-- Modal editor -->
   <div id="modal" class="modal hidden">
