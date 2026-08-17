@@ -324,6 +324,11 @@ input, select, textarea { font-family: inherit; }
 .md-body a { color: var(--accent); }
 .md-body img { max-width: 100%; border-radius: 8px; }
 
+/* ---------- Embeds ---------- */
+.note-embed { margin: 4px 0 18px; }
+.note-embed iframe { max-width: 100%; border-radius: 10px; border: 1px solid var(--border); }
+.note-embed .twitter-tweet, .note-embed .instagram-media { margin: 0 auto !important; }
+
 /* ---------- Confirmación ---------- */
 .confirm-card { max-width: 380px; }
 .confirm-body { padding: 22px; display: flex; flex-direction: column; gap: 20px; }

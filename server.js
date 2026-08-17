@@ -107,6 +107,43 @@ app.get('/api/read', wrap(async (req, res) => {
   res.json(await readPage(String(req.query.url)));
 }));
 
+const EMBED_PROVIDERS = [
+  { name: 'youtube', match: /(?:youtube\.com\/watch|youtu\.be\/)/, oembed: (u) => `https://www.youtube.com/oembed?url=${encodeURIComponent(u)}&format=json` },
+  { name: 'tiktok', match: /tiktok\.com\//, oembed: (u) => `https://www.tiktok.com/oembed?url=${encodeURIComponent(u)}` },
+  { name: 'instagram', match: /instagram\.com\/(p|reel|tv)\//, oembed: (u) => `https://api.instagram.com/oembed?url=${encodeURIComponent(u)}` },
+  { name: 'twitter', match: /(?:twitter\.com\/|x\.com\/).*\/status\//, oembed: (u) => `https://publish.twitter.com/oembed?url=${encodeURIComponent(u)}` },
+];
+
+app.get('/api/oembed', wrap(async (req, res) => {
+  const url = String(req.query.url || '');
+  if (!/^https?:\/\//i.test(url)) throw new Error('URL inválida');
+  for (const p of EMBED_PROVIDERS) {
+    if (!p.match.test(url)) continue;
+    try {
+      const r = await fetch(p.oembed(url), {
+        headers: {
+          'user-agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+          accept: 'application/json',
+        },
+      });
+      if (!r.ok) continue;
+      const data = await r.json();
+      if (data && data.html) {
+        return res.json({
+          provider: p.name,
+          html: data.html,
+          title: data.title || '',
+          author: data.author_name || '',
+        });
+      }
+    } catch {
+      /* probar el siguiente proveedor */
+    }
+  }
+  res.json({ provider: null, html: null });
+}));
+
 app.post('/api/upload', wrap(async (req, res) => {
   const { name, data, mime } = req.body || {};
   if (!data) throw new Error('Falta la imagen');

@@ -5,8 +5,9 @@
     article: '📰 Artículo',
     idea: '💡 Idea',
     quote: '💬 Cita',
+    video: '🎬 Video',
   };
-  const TYPE_ORDER = ['tweet', 'paper', 'article', 'idea', 'quote'];
+  const TYPE_ORDER = ['tweet', 'paper', 'article', 'idea', 'quote', 'video'];
   const STATUS_LABELS = { 'por-leer': '📌 Por leer', leyendo: '⏳ Leyendo', leido: '✅ Leído' };
   const STATUS_SHORT = { 'por-leer': 'Por leer', leyendo: 'Leyendo', leido: 'Leído' };
   const STATUS_ORDER = ['leyendo', 'por-leer', 'leido'];
@@ -402,14 +403,40 @@ async function api(path, opts = {}) {
         </div>
         ${statusSet}
         ${links}
+        ${note.source ? `<div class="note-embed hidden" data-embed-url="${escapeAttr(note.source)}"></div>` : ''}
         <div class="detail-tags">${tags}</div>
         <div class="md-body">${rendered.html}</div>`;
       detail.classList.remove('hidden');
+      loadEmbed($('#detail-body').querySelector('.note-embed'));
       $('#detail-body').querySelectorAll('[data-set-status]').forEach((b) =>
         b.addEventListener('click', () => setStatus(state.detailId, b.dataset.setStatus))
       );
     } catch (err) {
       toast(err.message);
+    }
+  }
+
+  function mountEmbed(container, html) {
+    container.innerHTML = html;
+    container.querySelectorAll('script').forEach((old) => {
+      const s = document.createElement('script');
+      if (old.src) s.src = old.src;
+      else s.textContent = old.textContent;
+      s.async = true;
+      old.replaceWith(s);
+    });
+  }
+
+  async function loadEmbed(slot) {
+    if (!slot || !slot.dataset.embedUrl) return;
+    slot.classList.remove('hidden');
+    slot.innerHTML = '<p class="reader-loading">Cargando vista previa…</p>';
+    try {
+      const em = await api(`/api/oembed?url=${encodeURIComponent(slot.dataset.embedUrl)}`);
+      if (em && em.html) mountEmbed(slot, em.html);
+      else slot.classList.add('hidden');
+    } catch {
+      slot.classList.add('hidden');
     }
   }
 
