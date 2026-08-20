@@ -207,6 +207,8 @@ input, select, textarea { font-family: inherit; }
 }
 .act:hover { opacity: 1; color: var(--text); background: var(--bg-soft); }
 .act-mark:hover { color: var(--ok); background: rgba(74, 222, 128, 0.12); }
+.act-fav { color: #f5c542; opacity: 1; }
+.act-fav:hover { color: #f5c542; background: rgba(245, 197, 66, 0.12); }
 
 /* ---------- Badges ---------- */
 .type-badge {

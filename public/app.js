@@ -17,6 +17,7 @@
     typeFilter: 'all',
     tagFilter: '',
     statusFilter: 'all',
+    favFilter: false,
     search: '',
     editingId: null,
     detailId: null,
@@ -82,19 +83,27 @@ async function api(path, opts = {}) {
   function renderStatusFilters() {
     const counts = { all: state.notes.length, 'por-leer': 0, leyendo: 0, leido: 0 };
     for (const n of state.notes) counts[n.status || 'por-leer']++;
+    const favCount = state.notes.filter((n) => n.fav).length;
     const tabs = [
       { k: 'all', label: `Todo` },
       ...STATUS_ORDER.map((s) => ({ k: s, label: STATUS_LABELS[s] })),
     ];
-    statusFilters.innerHTML = tabs
-      .map(
-        ({ k, label }) =>
-          `<button class="chip ${state.statusFilter === k ? 'active' : ''}" data-status="${k}">${label} <span class="chip-count">${counts[k]}</span></button>`
-      )
-      .join('');
+    statusFilters.innerHTML =
+      `<button class="chip ${state.favFilter ? 'active' : ''}" data-favfilter>⭐ Favoritos <span class="chip-count">${favCount}</span></button>` +
+      tabs
+        .map(
+          ({ k, label }) =>
+            `<button class="chip ${!state.favFilter && state.statusFilter === k ? 'active' : ''}" data-status="${k}">${label} <span class="chip-count">${counts[k]}</span></button>`
+        )
+        .join('');
     statusFilters.querySelectorAll('.chip').forEach((c) =>
       c.addEventListener('click', () => {
-        state.statusFilter = c.dataset.status;
+        if (c.hasAttribute('data-favfilter')) {
+          state.favFilter = !state.favFilter;
+        } else {
+          state.favFilter = false;
+          state.statusFilter = c.dataset.status;
+        }
         renderStatusFilters();
         renderGrid();
       })
@@ -149,6 +158,7 @@ async function api(path, opts = {}) {
     const q = state.search.toLowerCase();
     return state.notes.filter((n) => {
       if (state.typeFilter !== 'all' && n.type !== state.typeFilter) return false;
+      if (state.favFilter && !n.fav) return false;
       if (state.statusFilter !== 'all' && (n.status || 'por-leer') !== state.statusFilter) return false;
       if (state.tagFilter && !n.tags.includes(state.tagFilter)) return false;
       if (q) {
@@ -181,6 +191,7 @@ async function api(path, opts = {}) {
         <div class="card-meta">
           ${tags}
           <span class="card-actions">
+            <button class="act ${n.fav ? 'act-fav' : ''}" data-fav="${n.id}" title="${n.fav ? 'Quitar de favoritos' : 'Añadir a favoritos'}">${n.fav ? '⭐' : '☆'}</button>
             ${
               n.source
                 ? `<button class="act" data-read="${escapeAttr(n.source)}" title="Leer en la app">📖</button>
@@ -388,6 +399,8 @@ async function api(path, opts = {}) {
       $('#detail-badge').textContent = TYPE_LABELS[note.type];
       $('#detail-badge').className = `type-badge type-${note.type}`;
       $('#btn-read').style.display = note.source ? '' : 'none';
+      $('#btn-fav').textContent = note.fav ? '⭐' : '☆';
+      $('#btn-fav').title = note.fav ? 'Quitar de favoritos' : 'Añadir a favoritos';
       const statusSet = `
         <div class="status-set">
           ${STATUS_ORDER.map(
@@ -479,6 +492,19 @@ async function api(path, opts = {}) {
     try {
       await api(`/api/notes/${id}`, { method: 'PUT', body: JSON.stringify({ status }) });
       toast(`Marcada: ${STATUS_LABELS[status]}`);
+      await refresh();
+      if (state.detailId === id) openDetail(id);
+    } catch (err) {
+      toast(err.message);
+    }
+  }
+
+  async function toggleFav(id) {
+    const note = state.notes.find((n) => n.id === id);
+    if (!note) return;
+    try {
+      await api(`/api/notes/${id}`, { method: 'PUT', body: JSON.stringify({ fav: !note.fav }) });
+      toast(note.fav ? 'Quitado de favoritos' : 'Añadido a favoritos ⭐');
       await refresh();
       if (state.detailId === id) openDetail(id);
     } catch (err) {
@@ -623,10 +649,18 @@ async function api(path, opts = {}) {
       setStatus(markEl.dataset.mark, 'leido');
       return;
     }
+    const favEl = e.target.closest('[data-fav]');
+    if (favEl) {
+      toggleFav(favEl.dataset.fav);
+      return;
+    }
     const card = e.target.closest('.card');
-    if (card && !e.target.closest('a') && !e.target.closest('[data-read]') && !e.target.closest('[data-mark]')) {
+    if (card && !e.target.closest('a') && !e.target.closest('[data-read]') && !e.target.closest('[data-mark]') && !e.target.closest('[data-fav]')) {
       openDetail(card.dataset.id);
     }
+  });
+  $('#btn-fav').addEventListener('click', () => {
+    if (state.detailId) toggleFav(state.detailId);
   });
   $('#btn-edit').addEventListener('click', () => {
     const note = state.notes.find((n) => n.id === state.detailId);
